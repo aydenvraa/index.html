@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Ghost Games.io</title>
+<title>Ayden Hub - Mega Arcade</title>
 <style>
 body{margin:0;font-family:Arial;background:#070711;color:white;overflow:hidden}
 header{
@@ -17,89 +17,34 @@ header{
     box-shadow:0 0 15px #00ffff55;
 }
 header span{color:#00ffff}
-
 #container{display:flex;height:calc(100vh - 70px)}
-
-#sidebar{
-    width:320px;
-    background:#111122;
-    overflow-y:auto;
-    padding:15px;
-    border-right:2px solid #00ffff22;
-}
-
-#search{
-    width:100%;
-    padding:8px;
-    margin-bottom:10px;
-    background:#1a1a2f;
-    border:none;
-    color:white;
-}
-
-.tabs button{
-    margin:3px;
-    padding:6px 10px;
-    background:#1a1a2f;
-    border:1px solid #00ffff33;
-    color:white;
-    cursor:pointer;
-}
-
+#sidebar{width:320px;background:#111122;overflow-y:auto;padding:15px;border-right:2px solid #00ffff22}
+#search{width:100%;padding:8px;margin-bottom:10px;background:#1a1a2f;border:none;color:white}
+.tabs button{margin:3px;padding:6px 10px;background:#1a1a2f;border:1px solid #00ffff33;color:white;cursor:pointer}
 .tabs button.active{background:#00ffff;color:black}
-
-.gameCard{
-    background:#14142a;
-    margin-bottom:8px;
-    padding:8px;
-    cursor:pointer;
-    transition:.3s;
-}
-.gameCard:hover{
-    box-shadow:0 0 15px #00ffffaa;
-    transform:scale(1.03);
-    filter:drop-shadow(0 0 10px #00ffff);
-}
-
-.gameCard img{
-    width:100%;
-    height:120px;
-    object-fit:cover;
-    margin-bottom:5px;
-}
-
+.gameCard{background:#14142a;margin-bottom:8px;padding:8px;cursor:pointer;transition:.3s}
+.gameCard:hover{box-shadow:0 0 15px #00ffffaa;transform:scale(1.03);filter:drop-shadow(0 0 10px #00ffff)}
+.gameCard img{width:100%;height:120px;object-fit:cover;margin-bottom:5px}
 #gameArea{flex:1;position:relative;background:black}
 iframe{width:100%;height:100%;border:none}
 #profile{font-size:14px}
 #stats{font-size:12px;margin-top:10px}
-
-#fullscreenModal{
-    position:fixed;
-    top:0;left:0;width:100%;height:100%;
-    background:black;display:none;
-    z-index:9999;
-    flex-direction:column;
-}
+#fullscreenModal{position:fixed;top:0;left:0;width:100%;height:100%;background:black;display:none;z-index:9999;flex-direction:column}
 #fullscreenModal iframe{flex:1;}
-#closeModal{
-    background:#00ffff;color:black;padding:5px 10px;
-    border:none;cursor:pointer;font-weight:bold;
-    position:absolute;top:10px;right:10px;z-index:10000;
-}
+#closeModal{background:#00ffff;color:black;padding:5px 10px;border:none;cursor:pointer;font-weight:bold;position:absolute;top:10px;right:10px;z-index:10000;}
 </style>
 </head>
 <body>
 
 <header>
-👻 <span>Ghost Games.io</span>
+👾 <span>Ayden Hub</span>
 <div id="profile">
-    Username: <span id="usernameDisplay">Guest</span>
-    <button onclick="setUsername()">Change</button>
+Username: <span id="usernameDisplay">Guest</span>
+<button onclick="setUsername()">Change</button>
 </div>
 </header>
 
 <div id="container">
-
 <div id="sidebar">
 <input id="search" placeholder="Search..." onkeyup="renderGames()">
 
@@ -108,8 +53,8 @@ iframe{width:100%;height:100%;border:none}
 <button onclick="setCategory('FPS',event)">FPS</button>
 <button onclick="setCategory('Strategy',event)">Strategy</button>
 <button onclick="setCategory('Survival',event)">Survival</button>
-<button onclick="setCategory('Custom',event)">Custom</button>
 <button onclick="setCategory('Battle Royale',event)">Battle Royale</button>
+<button onclick="setCategory('Custom',event)">Custom</button>
 </div>
 
 <div id="gamesList"></div>
@@ -118,13 +63,11 @@ iframe{width:100%;height:100%;border:none}
 <h3>Top 10 Games</h3>
 <div id="ranking"></div>
 </div>
-
 </div>
 
 <div id="gameArea">
 <iframe id="gameFrame"></iframe>
 </div>
-
 </div>
 
 <!-- Fullscreen Modal -->
@@ -148,7 +91,6 @@ function setUsername(){
 
 // ===== GAME DATABASE =====
 let category="All";
-
 const games=[
 {name:"Ayden Hub",url:"https://aydenvraa.github.io/index.html/",cat:"Custom",thumb:"https://aydenvraa.github.io/favicon.ico"},
 {name:"Deadshot.io",url:"https://iogamesonly.com/game/deadshot-io",cat:"FPS",thumb:"https://iogamesonly.com/favicon.ico"},
