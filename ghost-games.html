@@ -55,8 +55,11 @@ header span{color:#00ffff}
     cursor:pointer;
     transition:.3s;
 }
-
-.gameCard:hover{box-shadow:0 0 10px #00ffff66}
+.gameCard:hover{
+    box-shadow:0 0 15px #00ffffaa;
+    transform:scale(1.03);
+    filter:drop-shadow(0 0 10px #00ffff);
+}
 
 .gameCard img{
     width:100%;
@@ -65,21 +68,23 @@ header span{color:#00ffff}
     margin-bottom:5px;
 }
 
-#gameArea{
-    flex:1;
-    position:relative;
-    background:black;
-}
-
+#gameArea{flex:1;position:relative;background:black}
 iframe{width:100%;height:100%;border:none}
+#profile{font-size:14px}
+#stats{font-size:12px;margin-top:10px}
 
-#profile{
-    font-size:14px;
+#fullscreenModal{
+    position:fixed;
+    top:0;left:0;width:100%;height:100%;
+    background:black;display:none;
+    z-index:9999;
+    flex-direction:column;
 }
-
-#stats{
-    font-size:12px;
-    margin-top:10px;
+#fullscreenModal iframe{flex:1;}
+#closeModal{
+    background:#00ffff;color:black;padding:5px 10px;
+    border:none;cursor:pointer;font-weight:bold;
+    position:absolute;top:10px;right:10px;z-index:10000;
 }
 </style>
 </head>
@@ -99,16 +104,18 @@ iframe{width:100%;height:100%;border:none}
 <input id="search" placeholder="Search..." onkeyup="renderGames()">
 
 <div class="tabs">
-<button onclick="setCategory('All')" class="active">All</button>
-<button onclick="setCategory('FPS')">FPS</button>
-<button onclick="setCategory('Strategy')">Strategy</button>
-<button onclick="setCategory('Survival')">Survival</button>
+<button onclick="setCategory('All',event)" class="active">All</button>
+<button onclick="setCategory('FPS',event)">FPS</button>
+<button onclick="setCategory('Strategy',event)">Strategy</button>
+<button onclick="setCategory('Survival',event)">Survival</button>
+<button onclick="setCategory('Custom',event)">Custom</button>
+<button onclick="setCategory('Battle Royale',event)">Battle Royale</button>
 </div>
 
 <div id="gamesList"></div>
 
 <div id="stats">
-<h3>Popular Games</h3>
+<h3>Top 10 Games</h3>
 <div id="ranking"></div>
 </div>
 
@@ -120,8 +127,13 @@ iframe{width:100%;height:100%;border:none}
 
 </div>
 
-<script>
+<!-- Fullscreen Modal -->
+<div id="fullscreenModal">
+<button id="closeModal" onclick="closeFullscreen()">Close X</button>
+<iframe id="modalFrame"></iframe>
+</div>
 
+<script>
 // ===== USER PROFILE =====
 let username = localStorage.getItem("username") || "Guest";
 document.getElementById("usernameDisplay").innerText = username;
@@ -138,25 +150,66 @@ function setUsername(){
 let category="All";
 
 const games=[
+{name:"Ayden Hub",url:"https://aydenvraa.github.io/index.html/",cat:"Custom",thumb:"https://aydenvraa.github.io/favicon.ico"},
 {name:"Deadshot.io",url:"https://iogamesonly.com/game/deadshot-io",cat:"FPS",thumb:"https://iogamesonly.com/favicon.ico"},
-{name:"Territorial.io",url:"https://iogamesonly.com/game/territorial-io",cat:"Strategy",thumb:"https://iogamesonly.com/favicon.ico"},
-{name:"Bloxd.io",url:"https://iogamesonly.com/game/bloxd-io",cat:"Survival",thumb:"https://iogamesonly.com/favicon.ico"},
-{name:"Hexanaut.io",url:"https://iogamesonly.com/game/hexanaut-io",cat:"Strategy",thumb:"https://iogamesonly.com/favicon.ico"},
-{name:"Slither.io",url:"https://slither.io",cat:"Survival",thumb:"https://slither.io/s/favicon.ico"},
 {name:"Krunker.io",url:"https://krunker.io",cat:"FPS",thumb:"https://krunker.io/favicon.ico"},
+{name:"Venge.io",url:"https://venge.io",cat:"FPS",thumb:"https://venge.io/favicon.ico"},
+{name:"Rush Team",url:"https://rushteam.io/",cat:"FPS",thumb:"https://rushteam.io/favicon.ico"},
+{name:"Combat Reloaded",url:"https://combatreload.io/",cat:"FPS",thumb:"https://combatreload.io/favicon.ico"},
+{name:"Territorial.io",url:"https://iogamesonly.com/game/territorial-io",cat:"Strategy",thumb:"https://iogamesonly.com/favicon.ico"},
+{name:"Hexanaut.io",url:"https://iogamesonly.com/game/hexanaut-io",cat:"Strategy",thumb:"https://iogamesonly.com/favicon.ico"},
+{name:"Amaz.io",url:"https://amaze.io",cat:"Strategy",thumb:"https://amaze.io/favicon.ico"},
+{name:"Slither.io",url:"https://slither.io",cat:"Survival",thumb:"https://slither.io/s/favicon.ico"},
 {name:"Agar.io",url:"https://agar.io",cat:"Survival",thumb:"https://agar.io/favicon.ico"},
-{name:"Venge.io",url:"https://venge.io",cat:"FPS",thumb:"https://venge.io/favicon.ico"}
+{name:"Diep.io",url:"https://diep.io",cat:"Survival",thumb:"https://diep.io/favicon.ico"},
+{name:"Paper.io 2",url:"https://paper-io.com/",cat:"Survival",thumb:"https://paper-io.com/favicon.ico"},
+{name:"Zombs Royale",url:"https://zombsroyale.io",cat:"Battle Royale",thumb:"https://zombsroyale.io/favicon.ico"},
+{name:"Surviv.io",url:"https://surviv.io",cat:"Battle Royale",thumb:"https://surviv.io/favicon.ico"},
+{name:"Mope.io",url:"https://mope.io",cat:"Survival",thumb:"https://mope.io/favicon.ico"},
+{name:"Snowball.io",url:"https://snowball.io",cat:"Survival",thumb:"https://snowball.io/favicon.ico"},
+{name:"Wormax.io",url:"https://wormax.io",cat:"Survival",thumb:"https://wormax.io/favicon.ico"},
+{name:"Tank.io",url:"https://tank.io",cat:"FPS",thumb:"https://tank.io/favicon.ico"},
+{name:"Evowars.io",url:"https://evowars.io",cat:"FPS",thumb:"https://evowars.io/favicon.ico"},
+{name:"Starve.io",url:"https://starve.io",cat:"Survival",thumb:"https://starve.io/favicon.ico"},
+{name:"Bonk.io",url:"https://bonk.io",cat:"Battle Royale",thumb:"https://bonk.io/favicon.ico"},
+{name:"Lordz.io",url:"https://lordz.io",cat:"Strategy",thumb:"https://lordz.io/favicon.ico"},
+{name:"Little Big Snake",url:"https://littlebigsnake.com",cat:"Survival",thumb:"https://littlebigsnake.com/favicon.ico"},
+{name:"Brutal.io",url:"https://brutal.io",cat:"Battle Royale",thumb:"https://brutal.io/favicon.ico"},
+{name:"Moomoo.io",url:"https://moomoo.io",cat:"Survival",thumb:"https://moomoo.io/favicon.ico"},
+{name:"Gats.io",url:"https://gats.io",cat:"FPS",thumb:"https://gats.io/favicon.ico"},
+{name:"Ev.io",url:"https://ev.io",cat:"FPS",thumb:"https://ev.io/favicon.ico"},
+{name:"Arrow.io",url:"https://arrow.io",cat:"Battle Royale",thumb:"https://arrow.io/favicon.ico"},
+{name:"Slay.one",url:"https://slay.one",cat:"FPS",thumb:"https://slay.one/favicon.ico"},
+{name:"Wormate.io",url:"https://wormate.io",cat:"Survival",thumb:"https://wormate.io/favicon.ico"},
+{name:"Superhex.io",url:"https://superhex.io",cat:"Strategy",thumb:"https://superhex.io/favicon.ico"},
+{name:"Agma.io",url:"https://agma.io",cat:"Survival",thumb:"https://agma.io/favicon.ico"},
+{name:"Osmos Online",url:"https://osmos.online",cat:"Survival",thumb:"https://osmos.online/favicon.ico"},
+{name:"Spinz.io",url:"https://spinz.io",cat:"Survival",thumb:"https://spinz.io/favicon.ico"},
+{name:"Foes.io",url:"https://foes.io",cat:"FPS",thumb:"https://foes.io/favicon.ico"},
+{name:"Tugs.io",url:"https://tugs.io",cat:"Strategy",thumb:"https://tugs.io/favicon.ico"},
+{name:"Lordz 2",url:"https://lordz2.io",cat:"Strategy",thumb:"https://lordz2.io/favicon.ico"},
+{name:"Starblast.io",url:"https://starblast.io",cat:"FPS",thumb:"https://starblast.io/favicon.ico"},
+{name:"Zombs.io",url:"https://zombs.io",cat:"Survival",thumb:"https://zombs.io/favicon.ico"},
+{name:"Battleboats.io",url:"https://battleboats.io",cat:"Battle Royale",thumb:"https://battleboats.io/favicon.ico"},
+{name:"Diep2.io",url:"https://diep2.io",cat:"FPS",thumb:"https://diep2.io/favicon.ico"},
+{name:"Tank Trouble",url:"https://tanktrouble.com/",cat:"FPS",thumb:"https://tanktrouble.com/favicon.ico"},
+{name:"Wings.io",url:"https://wings.io",cat:"FPS",thumb:"https://wings.io/favicon.ico"},
+{name:"Lordz 3",url:"https://lordz3.io",cat:"Strategy",thumb:"https://lordz3.io/favicon.ico"},
+{name:"Slither.io Classic",url:"https://slither.io/classic",cat:"Survival",thumb:"https://slither.io/s/favicon.ico"}
 ];
 
+// ===== PLAYTIME & LEADERBOARD =====
 let playStats = JSON.parse(localStorage.getItem("playStats")||"{}");
 
-function setCategory(cat){
+// ===== CATEGORY FILTER =====
+function setCategory(cat, e){
     category=cat;
     document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
-    event.target.classList.add("active");
+    e.target.classList.add("active");
     renderGames();
 }
 
+// ===== RENDER GAMES =====
 function renderGames(){
     const list=document.getElementById("gamesList");
     list.innerHTML="";
@@ -173,7 +226,7 @@ function renderGames(){
         <strong>${g.name}</strong>
         <div style="font-size:12px">${g.cat}</div>
         `;
-        div.onclick=()=>loadGame(g.url,g.name);
+        div.onclick=()=>loadGame(g.url,g.name,true);
         list.appendChild(div);
     });
 
@@ -182,14 +235,24 @@ function renderGames(){
 
 renderGames();
 
-// ===== LOAD GAME + TRACK PLAYTIME =====
+// ===== LOAD GAME + PLAYTIME =====
 let currentGame=null;
 let startTime=0;
 
-function loadGame(url,name){
-    document.getElementById("gameFrame").src=url;
+function loadGame(url,name,fullscreen=false){
     currentGame=name;
     startTime=Date.now();
+    if(fullscreen){
+        document.getElementById("fullscreenModal").style.display="flex";
+        document.getElementById("modalFrame").src=url;
+    } else {
+        document.getElementById("gameFrame").src=url;
+    }
+}
+
+function closeFullscreen(){
+    document.getElementById("fullscreenModal").style.display="none";
+    document.getElementById("modalFrame").src="";
 }
 
 window.onbeforeunload=saveTime;
@@ -203,19 +266,17 @@ function saveTime(){
     }
 }
 
-// ===== RANKING =====
+// ===== LEADERBOARD =====
 function updateRanking(){
     let rankingDiv=document.getElementById("ranking");
     rankingDiv.innerHTML="";
     let sorted=Object.entries(playStats)
         .sort((a,b)=>b[1]-a[1])
-        .slice(0,5);
-
+        .slice(0,10);
     sorted.forEach(r=>{
         rankingDiv.innerHTML+=`${r[0]} - ${Math.floor(r[1])}s<br>`;
     });
 }
-
 </script>
 
 </body>
