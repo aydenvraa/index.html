@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Ghost Games.io</title>
+<style>
+body{margin:0;font-family:Arial;background:#070711;color:white;overflow:hidden}
+header{
+    height:70px;
+    background:linear-gradient(90deg,#111,#1a1a2f,#111);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 25px;
+    font-size:24px;
+    font-weight:bold;
+    box-shadow:0 0 15px #00ffff55;
+}
+header span{color:#00ffff}
+
+#container{display:flex;height:calc(100vh - 70px)}
+
+#sidebar{
+    width:320px;
+    background:#111122;
+    overflow-y:auto;
+    padding:15px;
+    border-right:2px solid #00ffff22;
+}
+
+#search{
+    width:100%;
+    padding:8px;
+    margin-bottom:10px;
+    background:#1a1a2f;
+    border:none;
+    color:white;
+}
+
+.tabs button{
+    margin:3px;
+    padding:6px 10px;
+    background:#1a1a2f;
+    border:1px solid #00ffff33;
+    color:white;
+    cursor:pointer;
+}
+
+.tabs button.active{background:#00ffff;color:black}
+
+.gameCard{
+    background:#14142a;
+    margin-bottom:8px;
+    padding:8px;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.gameCard:hover{box-shadow:0 0 10px #00ffff66}
+
+.gameCard img{
+    width:100%;
+    height:120px;
+    object-fit:cover;
+    margin-bottom:5px;
+}
+
+#gameArea{
+    flex:1;
+    position:relative;
+    background:black;
+}
+
+iframe{width:100%;height:100%;border:none}
+
+#profile{
+    font-size:14px;
+}
+
+#stats{
+    font-size:12px;
+    margin-top:10px;
+}
+</style>
+</head>
+<body>
+
+<header>
+👻 <span>Ghost Games.io</span>
+<div id="profile">
+    Username: <span id="usernameDisplay">Guest</span>
+    <button onclick="setUsername()">Change</button>
+</div>
+</header>
+
+<div id="container">
+
+<div id="sidebar">
+<input id="search" placeholder="Search..." onkeyup="renderGames()">
+
+<div class="tabs">
+<button onclick="setCategory('All')" class="active">All</button>
+<button onclick="setCategory('FPS')">FPS</button>
+<button onclick="setCategory('Strategy')">Strategy</button>
+<button onclick="setCategory('Survival')">Survival</button>
+</div>
+
+<div id="gamesList"></div>
+
+<div id="stats">
+<h3>Popular Games</h3>
+<div id="ranking"></div>
+</div>
+
+</div>
+
+<div id="gameArea">
+<iframe id="gameFrame"></iframe>
+</div>
+
+</div>
+
+<script>
+
+// ===== USER PROFILE =====
+let username = localStorage.getItem("username") || "Guest";
+document.getElementById("usernameDisplay").innerText = username;
+
+function setUsername(){
+    let newName = prompt("Enter username:");
+    if(newName){
+        localStorage.setItem("username", newName);
+        location.reload();
+    }
+}
+
+// ===== GAME DATABASE =====
+let category="All";
+
+const games=[
+{name:"Deadshot.io",url:"https://iogamesonly.com/game/deadshot-io",cat:"FPS",thumb:"https://iogamesonly.com/favicon.ico"},
+{name:"Territorial.io",url:"https://iogamesonly.com/game/territorial-io",cat:"Strategy",thumb:"https://iogamesonly.com/favicon.ico"},
+{name:"Bloxd.io",url:"https://iogamesonly.com/game/bloxd-io",cat:"Survival",thumb:"https://iogamesonly.com/favicon.ico"},
+{name:"Hexanaut.io",url:"https://iogamesonly.com/game/hexanaut-io",cat:"Strategy",thumb:"https://iogamesonly.com/favicon.ico"},
+{name:"Slither.io",url:"https://slither.io",cat:"Survival",thumb:"https://slither.io/s/favicon.ico"},
+{name:"Krunker.io",url:"https://krunker.io",cat:"FPS",thumb:"https://krunker.io/favicon.ico"},
+{name:"Agar.io",url:"https://agar.io",cat:"Survival",thumb:"https://agar.io/favicon.ico"},
+{name:"Venge.io",url:"https://venge.io",cat:"FPS",thumb:"https://venge.io/favicon.ico"}
+];
+
+let playStats = JSON.parse(localStorage.getItem("playStats")||"{}");
+
+function setCategory(cat){
+    category=cat;
+    document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
+    event.target.classList.add("active");
+    renderGames();
+}
+
+function renderGames(){
+    const list=document.getElementById("gamesList");
+    list.innerHTML="";
+    let search=document.getElementById("search").value.toLowerCase();
+
+    games.filter(g=>{
+        return (category==="All"||g.cat===category)
+        && g.name.toLowerCase().includes(search);
+    }).forEach(g=>{
+        const div=document.createElement("div");
+        div.className="gameCard";
+        div.innerHTML=`
+        <img src="${g.thumb}">
+        <strong>${g.name}</strong>
+        <div style="font-size:12px">${g.cat}</div>
+        `;
+        div.onclick=()=>loadGame(g.url,g.name);
+        list.appendChild(div);
+    });
+
+    updateRanking();
+}
+
+renderGames();
+
+// ===== LOAD GAME + TRACK PLAYTIME =====
+let currentGame=null;
+let startTime=0;
+
+function loadGame(url,name){
+    document.getElementById("gameFrame").src=url;
+    currentGame=name;
+    startTime=Date.now();
+}
+
+window.onbeforeunload=saveTime;
+
+function saveTime(){
+    if(currentGame){
+        let timeSpent=(Date.now()-startTime)/1000;
+        if(!playStats[currentGame]) playStats[currentGame]=0;
+        playStats[currentGame]+=timeSpent;
+        localStorage.setItem("playStats",JSON.stringify(playStats));
+    }
+}
+
+// ===== RANKING =====
+function updateRanking(){
+    let rankingDiv=document.getElementById("ranking");
+    rankingDiv.innerHTML="";
+    let sorted=Object.entries(playStats)
+        .sort((a,b)=>b[1]-a[1])
+        .slice(0,5);
+
+    sorted.forEach(r=>{
+        rankingDiv.innerHTML+=`${r[0]} - ${Math.floor(r[1])}s<br>`;
+    });
+}
+
+</script>
+
+</body>
+</html>
